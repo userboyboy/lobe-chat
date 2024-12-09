@@ -1,11 +1,23 @@
 {
   "about": "Acerca de",
   "advanceSettings": "Configuración avanzada",
-  "appInitializing": "Iniciando la aplicación, por favor espere...",
+  "alert": {
+    "cloud": {
+      "action": "Prueba gratuita",
+      "desc": "Ofrecemos {{credit}} créditos de cálculo gratuitos para todos los usuarios registrados, sin necesidad de configuración complicada, listos para usar, con soporte para historial de conversaciones ilimitado y sincronización en la nube global. ¡Explora más funciones avanzadas juntos!",
+      "descOnMobile": "Ofrecemos {{credit}} créditos de cálculo gratuitos para todos los usuarios registrados, sin necesidad de configuraciones complicadas, listos para usar.",
+      "title": "Bienvenido a {{name}}"
+    }
+  },
+  "appInitializing": "Iniciando la aplicación...",
   "autoGenerate": "Generación automática",
   "autoGenerateTooltip": "Completar automáticamente la descripción del asistente basándose en las sugerencias",
   "autoGenerateTooltipDisabled": "Por favor, complete la palabra clave antes de usar la función de autocompletar",
+  "back": "Volver",
+  "batchDelete": "Eliminar en lote",
   "blog": "Blog de productos",
+  "branching": "Crear subtemas",
+  "branchingDisable": "La función de «subtemas» solo está disponible en la versión del servidor. Si necesita esta función, cambie al modo de implementación del servidor o utilice LobeChat Cloud.",
   "cancel": "Cancelar",
   "changelog": "Registro de cambios",
   "close": "Cerrar",
@@ -23,6 +35,7 @@
   "defaultSession": "Sesión predeterminada",
   "delete": "Eliminar",
   "document": "Documento de uso",
+  "download": "Descargar",
   "duplicate": "Duplicar",
   "edit": "Editar",
   "export": "Exportar configuración",
@@ -101,6 +114,7 @@
     "en": "Inglés",
     "en-US": "Inglés",
     "es-ES": "Español",
+    "fa-IR": "persa",
     "fi-FI": "finlandés",
     "fr-FR": "Francés",
     "hi-IN": "hindi",
@@ -184,7 +198,8 @@
   },
   "tab": {
     "chat": "Chat",
-    "market": "Descubrir",
+    "discover": "Descubrir",
+    "files": "Archivos",
     "me": "Yo",
     "setting": "Configuración"
   },
@@ -206,6 +221,7 @@
   "userPanel": {
     "anonymousNickName": "Usuario Anónimo",
     "billing": "Gestión de facturación",
+    "cloud": "Prueba {{name}}",
     "data": "Almacenamiento de datos",
     "defaultNickname": "Usuario de la comunidad",
     "discord": "Soporte de la comunidad",

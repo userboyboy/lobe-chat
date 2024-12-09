@@ -1,27 +1,20 @@
-import { Icon } from '@lobehub/ui';
-import { Button, Skeleton, Space } from 'antd';
+import { Button, Space } from 'antd';
 import { createStyles } from 'antd-style';
-import { ChevronUp, CornerDownLeft, LucideCommand } from 'lucide-react';
 import { rgba } from 'polished';
 import { memo, useEffect, useState } from 'react';
 import { useTranslation } from 'react-i18next';
-import { Center, Flexbox } from 'react-layout-kit';
+import { Flexbox } from 'react-layout-kit';
 
 import StopLoadingIcon from '@/components/StopLoading';
-import SaveTopic from '@/features/ChatInput/Topic';
 import { useSendMessage } from '@/features/ChatInput/useSend';
-import { useAgentStore } from '@/store/agent';
-import { agentSelectors } from '@/store/agent/slices/chat';
 import { useChatStore } from '@/store/chat';
-import { chatSelectors, topicSelectors } from '@/store/chat/selectors';
-import { filesSelectors, useFileStore } from '@/store/file';
-import { useUserStore } from '@/store/user';
-import { modelProviderSelectors, preferenceSelectors } from '@/store/user/selectors';
+import { chatSelectors } from '@/store/chat/selectors';
 import { isMacOS } from '@/utils/platform';
 
-import DragUpload from './DragUpload';
-import { LocalFiles } from './LocalFiles';
+import LocalFiles from '../../../../../../../../../features/ChatInput/Desktop/FilePreview';
+import SaveTopic from '../../../../../../../../../features/ChatInput/Topic';
 import SendMore from './SendMore';
+import ShortcutHint from './ShortcutHint';
 
 const useStyles = createStyles(({ css, prefixCls, token }) => {
   return {
@@ -51,69 +44,27 @@ const useStyles = createStyles(({ css, prefixCls, token }) => {
 });
 
 interface FooterProps {
-  setExpand?: (expand: boolean) => void;
+  expand: boolean;
+  onExpandChange: (expand: boolean) => void;
 }
 
-const Footer = memo<FooterProps>(({ setExpand }) => {
+const Footer = memo<FooterProps>(({ onExpandChange, expand }) => {
   const { t } = useTranslation('chat');
 
-  const { theme, styles } = useStyles();
+  const { styles } = useStyles();
 
-  const [
-    isAIGenerating,
-    isHasMessageLoading,
-    isCreatingMessage,
-    isCreatingTopic,
-    stopGenerateMessage,
-  ] = useChatStore((s) => [
+  const [isAIGenerating, stopGenerateMessage] = useChatStore((s) => [
     chatSelectors.isAIGenerating(s),
-    chatSelectors.isHasMessageLoading(s),
-    chatSelectors.isCreatingMessage(s),
-    topicSelectors.isCreatingTopic(s),
     s.stopGenerateMessage,
   ]);
 
-  const isImageUploading = useFileStore(filesSelectors.isImageUploading);
-
-  const model = useAgentStore(agentSelectors.currentAgentModel);
-
-  const [useCmdEnterToSend, canUpload] = useUserStore((s) => [
-    preferenceSelectors.useCmdEnterToSend(s),
-    modelProviderSelectors.isModelEnabledUpload(model)(s),
-  ]);
-
-  const sendMessage = useSendMessage();
+  const { send: sendMessage, canSend } = useSendMessage();
 
   const [isMac, setIsMac] = useState<boolean>();
+
   useEffect(() => {
     setIsMac(isMacOS());
   }, [setIsMac]);
-
-  const cmdEnter = (
-    <Flexbox gap={2} horizontal>
-      {typeof isMac === 'boolean' ? (
-        <Icon icon={isMac ? LucideCommand : ChevronUp} />
-      ) : (
-        <Skeleton.Node active style={{ height: '100%', width: 12 }}>
-          {' '}
-        </Skeleton.Node>
-      )}
-      <Icon icon={CornerDownLeft} />
-    </Flexbox>
-  );
-
-  const enter = (
-    <Center>
-      <Icon icon={CornerDownLeft} />
-    </Center>
-  );
-
-  const sendShortcut = useCmdEnterToSend ? cmdEnter : enter;
-
-  const wrapperShortcut = useCmdEnterToSend ? enter : cmdEnter;
-
-  const buttonDisabled =
-    isImageUploading || isHasMessageLoading || isCreatingTopic || isCreatingMessage;
 
   return (
     <Flexbox
@@ -126,25 +77,10 @@ const Footer = memo<FooterProps>(({ setExpand }) => {
       padding={'0 24px'}
     >
       <Flexbox align={'center'} gap={8} horizontal style={{ overflow: 'hidden' }}>
-        {canUpload && (
-          <>
-            <DragUpload />
-            <LocalFiles />
-          </>
-        )}
+        {expand && <LocalFiles />}
       </Flexbox>
       <Flexbox align={'center'} flex={'none'} gap={8} horizontal>
-        <Flexbox
-          gap={4}
-          horizontal
-          style={{ color: theme.colorTextDescription, fontSize: 12, marginRight: 12 }}
-        >
-          {sendShortcut}
-          <span>{t('input.send')}</span>
-          <span>/</span>
-          {wrapperShortcut}
-          <span>{t('input.warp')}</span>
-        </Flexbox>
+        <ShortcutHint />
         <SaveTopic />
         <Flexbox style={{ minWidth: 92 }}>
           {isAIGenerating ? (
@@ -158,17 +94,17 @@ const Footer = memo<FooterProps>(({ setExpand }) => {
           ) : (
             <Space.Compact>
               <Button
-                disabled={buttonDisabled}
-                loading={buttonDisabled}
+                disabled={!canSend}
+                loading={!canSend}
                 onClick={() => {
                   sendMessage();
-                  setExpand?.(false);
+                  onExpandChange?.(false);
                 }}
                 type={'primary'}
               >
                 {t('input.send')}
               </Button>
-              <SendMore disabled={buttonDisabled} isMac={isMac} />
+              <SendMore disabled={!canSend} isMac={isMac} />
             </Space.Compact>
           )}
         </Flexbox>

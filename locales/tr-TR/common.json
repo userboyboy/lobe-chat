@@ -1,11 +1,23 @@
 {
   "about": "Hakkında",
   "advanceSettings": "Gelişmiş Ayarlar",
-  "appInitializing": "Uygulama başlatılıyor, lütfen bekleyin...",
+  "alert": {
+    "cloud": {
+      "action": "Ücretsiz Deneyin",
+      "desc": "Tüm kayıtlı kullanıcılarımıza {{credit}} ücretsiz hesaplama puanı sunuyoruz, karmaşık yapılandırmaya gerek yok, hemen kullanıma hazır, sınırsız konuşma geçmişi ve global bulut senkronizasyonu desteği, daha fazla gelişmiş özellikleri keşfetmeye hazır olun.",
+      "descOnMobile": "Tüm kayıtlı kullanıcılara {{credit}} ücretsiz hesaplama puanı sunuyoruz, karmaşık yapılandırmaya gerek yok, hemen kullanıma hazır.",
+      "title": "{{name}}'i Denemek İçin Hoş Geldiniz"
+    }
+  },
+  "appInitializing": "Uygulama başlatılıyor...",
   "autoGenerate": "Otomatik Oluştur",
   "autoGenerateTooltip": "Auto-generate agent description based on prompts",
   "autoGenerateTooltipDisabled": "Otomatik tamamlama işlevini kullanmadan önce ipucu kelimesini girin",
+  "back": "Geri",
+  "batchDelete": "Toplu Sil",
   "blog": "Ürün Blogu",
+  "branching": "Alt konu oluştur",
+  "branchingDisable": "«Alt konu» özelliği yalnızca sunucu sürümünde mevcuttur. Bu özelliği kullanmak için lütfen sunucu dağıtım moduna geçin veya LobeChat Cloud'u kullanın.",
   "cancel": "İptal",
   "changelog": "Changelog",
   "close": "Kapat",
@@ -23,6 +35,7 @@
   "defaultSession": "Varsayılan Asistan",
   "delete": "Sil",
   "document": "Belge",
+  "download": "İndir",
   "duplicate": "Kopya oluştur",
   "edit": "Düzenle",
   "export": "Dışa Aktar",
@@ -101,6 +114,7 @@
     "en": "İngilizce",
     "en-US": "İngilizce",
     "es-ES": "İspanyolca",
+    "fa-IR": "Farsça",
     "fi-FI": "Fince",
     "fr-FR": "Fransızca",
     "hi-IN": "Hintçe",
@@ -184,7 +198,8 @@
   },
   "tab": {
     "chat": "Chat",
-    "market": "Keşfet",
+    "discover": "Keşfet",
+    "files": "Dosyalar",
     "me": "ben",
     "setting": "Ayarlar"
   },
@@ -206,6 +221,7 @@
   "userPanel": {
     "anonymousNickName": "Anonim Kullanıcı",
     "billing": "Fatura Yönetimi",
+    "cloud": "{{name}}'i Deneyin",
     "data": "Veri Depolama",
     "defaultNickname": "Topluluk Kullanıcısı",
     "discord": "Topluluk Destek",

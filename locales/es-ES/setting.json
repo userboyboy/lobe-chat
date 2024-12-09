@@ -12,7 +12,7 @@
   },
   "analytics": {
     "telemetry": {
-      "desc": "Al seleccionar el envío de datos de telemetría, nos ayudas a mejorar la experiencia general del usuario de LobeChat",
+      "desc": "Al seleccionar enviar datos de telemetría, puedes ayudarnos a mejorar la experiencia general del usuario en {{appName}}",
       "title": "Enviar datos de uso anónimos"
     },
     "title": "Análisis de datos"
@@ -70,11 +70,11 @@
           "title": "Nombre de visualización del modelo"
         },
         "files": {
-          "extra": "La carga de archivos actual en LobeChat es solo una solución provisional. Por favor, espera a futuras actualizaciones para una funcionalidad completa de carga de archivos.",
+          "extra": "La implementación actual de carga de archivos es solo una solución temporal, limitada a pruebas personales. Por favor, espera la implementación completa de la capacidad de carga de archivos.",
           "title": "Soporte de carga de archivos"
         },
         "functionCall": {
-          "extra": "Esta configuración solo habilitará la capacidad de llamada a funciones en LobeChat. La compatibilidad con las llamadas a funciones depende completamente del modelo en sí. Por favor, realiza pruebas para verificar la disponibilidad de esta capacidad en el modelo.",
+          "extra": "Esta configuración solo habilitará la capacidad de llamada a funciones en la aplicación; si se admite la llamada a funciones depende completamente del modelo en sí. Por favor, prueba la disponibilidad de la capacidad de llamada a funciones de este modelo.",
           "title": "Soporte de llamadas a funciones"
         },
         "id": {
@@ -88,7 +88,7 @@
           "unlimited": "ilimitado"
         },
         "vision": {
-          "extra": "Esta configuración solo habilitará la configuración de carga de imágenes en LobeChat. La capacidad de reconocimiento depende completamente del modelo en sí. Por favor, realiza pruebas para verificar la disponibilidad de esta capacidad en el modelo.",
+          "extra": "Esta configuración solo habilitará la configuración de carga de imágenes en la aplicación; si se admite el reconocimiento depende completamente del modelo en sí. Por favor, prueba la disponibilidad de la capacidad de reconocimiento visual de este modelo.",
           "title": "Soporte de reconocimiento visual"
         }
       }
@@ -98,6 +98,7 @@
       "title": "Usar el modo de solicitud en el cliente"
     },
     "fetcher": {
+      "clear": "Eliminar el modelo obtenido",
       "fetch": "Obtener lista de modelos",
       "fetching": "Obteniendo lista de modelos...",
       "latestTime": "Última actualización: {{time}}",
@@ -175,8 +176,8 @@
       "desc": "Indica si se debe crear automáticamente un tema durante la conversación, solo se aplica en temas temporales",
       "title": "Crear tema automáticamente"
     },
-    "enableCompressThreshold": {
-      "title": "Activar umbral de compresión de longitud de mensajes históricos"
+    "enableCompressHistory": {
+      "title": "Activar resumen automático de mensajes históricos"
     },
     "enableHistoryCount": {
       "alias": "Sin límite",
@@ -209,13 +210,7 @@
       "title": "Límite de tokens por respuesta"
     },
     "model": {
-      "desc": "Modelo ChatGPT",
-      "list": {
-        "gpt-3.5-turbo": "GPT 3.5",
-        "gpt-3.5-turbo-16k": "GPT 3.5 (16K)",
-        "gpt-4": "GPT 4",
-        "gpt-4-32k": "GPT 4 (32K)"
-      },
+      "desc": "{{provider}} modelo",
       "title": "Modelo"
     },
     "presencePenalty": {
@@ -345,7 +340,7 @@
       "unknownOS": "Sistema operativo desconocido"
     },
     "warning": {
-      "message": "Esta función todavía está en fase experimental y puede presentar situaciones inesperadas o inestables. Si encuentras algún problema, por favor envía tus comentarios de inmediato."
+      "tip": "Después de un largo período de pruebas comunitarias, la sincronización WebRTC puede no ser capaz de satisfacer de manera estable las demandas generales de sincronización de datos. Por favor, <1>implementa tu propio servidor de señalización</1> antes de usarlo."
     },
     "webrtc": {
       "channelName": {
@@ -361,8 +356,13 @@
       },
       "desc": "Comunicación de datos en tiempo real y punto a punto. Los dispositivos deben estar en línea simultáneamente para sincronizarse",
       "enabled": {
-        "invalid": "Por favor, introduce el nombre del canal de sincronización antes de activar",
+        "invalid": "Por favor, completa la información del servidor de señalización y el nombre del canal de sincronización antes de habilitarlo",
         "title": "Activar sincronización"
+      },
+      "signaling": {
+        "desc": "WebRTC utilizará esta dirección para la sincronización",
+        "placeholder": "Introduce la dirección del servidor de señalización",
+        "title": "Servidor de señalización"
       },
       "title": "Sincronización WebRTC"
     }
@@ -372,6 +372,27 @@
       "label": "Modelo de generación de metadatos de asistente",
       "modelDesc": "Modelo designado para generar el nombre, descripción, avatar y etiquetas del asistente",
       "title": "Generación automática de información del asistente"
+    },
+    "customPrompt": {
+      "addPrompt": "Agregar aviso personalizado",
+      "desc": "Al completarlo, el asistente del sistema utilizará el aviso personalizado al generar contenido",
+      "placeholder": "Introduce la palabra clave personalizada",
+      "title": "Palabra clave personalizada"
+    },
+    "historyCompress": {
+      "label": "Modelo de historial de conversación",
+      "modelDesc": "Especifica el modelo utilizado para comprimir el historial de conversación",
+      "title": "Resumen automático del historial de conversación"
+    },
+    "queryRewrite": {
+      "label": "Modelo de reescritura de preguntas",
+      "modelDesc": "Modelo designado para optimizar las preguntas de los usuarios",
+      "title": "Reescritura de preguntas de la base de conocimientos"
+    },
+    "thread": {
+      "label": "Modelo de nombramiento de subtemas",
+      "modelDesc": "Modelo designado para el renombramiento automático de subtemas",
+      "title": "Nombramiento automático de subtemas"
     },
     "title": "Asistente del sistema",
     "topic": {

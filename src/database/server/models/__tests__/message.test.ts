@@ -2,30 +2,31 @@ import { eq } from 'drizzle-orm';
 import { afterEach, beforeEach, describe, expect, it, vi } from 'vitest';
 
 import { getTestDBInstance } from '@/database/server/core/dbForTest';
+import { uuid } from '@/utils/uuid';
 
 import {
+  chunks,
+  embeddings,
+  fileChunks,
   files,
-  filesToMessages,
   messagePlugins,
+  messageQueries,
+  messageQueryChunks,
   messageTTS,
   messageTranslates,
   messages,
+  messagesFiles,
   sessions,
   topics,
   users,
-} from '../../schemas/lobechat';
+} from '../../../schemas';
 import { MessageModel } from '../message';
+import { codeEmbedding } from './fixtures/embedding';
 
 let serverDB = await getTestDBInstance();
 
-vi.mock('@/database/server/core/db', async () => ({
-  get serverDB() {
-    return serverDB;
-  },
-}));
-
 const userId = 'message-db';
-const messageModel = new MessageModel(userId);
+const messageModel = new MessageModel(serverDB, userId);
 
 beforeEach(async () => {
   // 在每个测试用例之前，清空表
@@ -202,7 +203,7 @@ describe('MessageModel', () => {
           .insert(messageTTS)
           .values([{ id: '1' }, { id: '2', voice: 'a', fileId: 'f-1', contentMd5: 'abc' }]);
 
-        await trx.insert(filesToMessages).values([
+        await trx.insert(messagesFiles).values([
           { fileId: 'f-0', messageId: '1' },
           { fileId: 'f-3', messageId: '1' },
         ]);
@@ -214,10 +215,13 @@ describe('MessageModel', () => {
       // 断言结果
       expect(result).toHaveLength(2);
       expect(result[0].id).toBe('1');
-      expect(result[0].files).toEqual(['f-0', 'f-3']);
+      expect(result[0].imageList).toEqual([
+        { alt: 'file-1', id: 'f-0', url: expect.stringContaining('/abc') },
+        { alt: 'file-3', id: 'f-3', url: expect.stringContaining('/abc') },
+      ]);
 
       expect(result[1].id).toBe('2');
-      expect(result[1].files).toEqual([]);
+      expect(result[1].imageList).toEqual([]);
     });
 
     it('should include translate, tts and other extra fields in query result', async () => {
@@ -245,9 +249,10 @@ describe('MessageModel', () => {
 
       // 断言结果
       expect(result[0].extra.translate).toEqual({ content: 'translated', from: 'en', to: 'zh' });
-      // TODO: 确认是否需要包含 tts 字段
       expect(result[0].extra.tts).toEqual({
-        // contentMd5: 'md5', file: 'f1', voice: 'voice1'
+        contentMd5: 'md5',
+        file: 'f1',
+        voice: 'voice1',
       });
     });
 
@@ -268,6 +273,93 @@ describe('MessageModel', () => {
 
       const result3 = await messageModel.query({ current: 2, pageSize: 2 });
       expect(result3).toHaveLength(0);
+    });
+
+    // 补充测试复杂查询场景
+    it('should handle complex query with multiple joins and file chunks', async () => {
+      await serverDB.transaction(async (trx) => {
+        const chunk1Id = uuid();
+        const query1Id = uuid();
+        // 创建基础消息
+        await trx.insert(messages).values({
+          id: 'msg1',
+          userId,
+          role: 'user',
+          content: 'test message',
+          createdAt: new Date('2023-01-01'),
+        });
+
+        // 创建文件
+        await trx.insert(files).values([
+          {
+            id: 'file1',
+            userId,
+            name: 'test.txt',
+            url: 'test-url',
+            fileType: 'text/plain',
+            size: 100,
+          },
+        ]);
+
+        // 创建文件块
+        await trx.insert(chunks).values({
+          id: chunk1Id,
+          text: 'chunk content',
+        });
+
+        // 关联消息和文件
+        await trx.insert(messagesFiles).values({
+          messageId: 'msg1',
+          fileId: 'file1',
+        });
+
+        // 创建文件块关联
+        await trx.insert(fileChunks).values({
+          fileId: 'file1',
+          chunkId: chunk1Id,
+        });
+
+        // 创建消息查询
+        await trx.insert(messageQueries).values({
+          id: query1Id,
+          messageId: 'msg1',
+          userQuery: 'original query',
+          rewriteQuery: 'rewritten query',
+        });
+
+        // 创建消息查询块关联
+        await trx.insert(messageQueryChunks).values({
+          messageId: 'msg1',
+          queryId: query1Id,
+          chunkId: chunk1Id,
+          similarity: '0.95',
+        });
+      });
+
+      const result = await messageModel.query();
+
+      expect(result).toHaveLength(1);
+      expect(result[0].chunksList).toHaveLength(1);
+      expect(result[0].chunksList[0]).toMatchObject({
+        text: 'chunk content',
+        similarity: 0.95,
+      });
+    });
+
+    it('should return empty arrays for files and chunks if none exist', async () => {
+      await serverDB.insert(messages).values({
+        id: 'msg1',
+        userId,
+        role: 'user',
+        content: 'test message',
+      });
+
+      const result = await messageModel.query();
+
+      expect(result).toHaveLength(1);
+      expect(result[0].fileList).toEqual([]);
+      expect(result[0].imageList).toEqual([]);
+      expect(result[0].chunksList).toEqual([]);
     });
   });
 
@@ -491,6 +583,75 @@ describe('MessageModel', () => {
       expect(pluginResult).toHaveLength(1);
       expect(pluginResult[0].identifier).toBe('plugin1');
     });
+
+    it('should create tool message ', async () => {
+      // 调用 create 方法
+      const state = {
+        query: 'Composio',
+        answers: [],
+        results: [
+          {
+            url: 'https://www.composio.dev/',
+            score: 16,
+            title: 'Composio - Connect 90+ tools to your AI agents',
+            engine: 'bing',
+            content:
+              'Faster DevelopmentHigher ReliabilityBetter Integrations. Get Started Now. Our platform lets you ditch the specs and seamlessly integrate any tool you need in less than 5 mins.',
+            engines: ['bing', 'qwant', 'brave', 'duckduckgo'],
+            category: 'general',
+            template: 'default.html',
+            positions: [1, 1, 1, 1],
+            thumbnail: '',
+            parsed_url: ['https', 'www.composio.dev', '/', '', '', ''],
+            publishedDate: null,
+          },
+          {
+            url: 'https://www.composio.co/',
+            score: 10.75,
+            title: 'Composio',
+            engine: 'bing',
+            content:
+              'Composio was created to help streamline the entire book creation process! Writing. Take time out to write / Make a schedule to write consistently. We have writing software that optimizes your books for printing or ebook format. Figure out what you want to write. Collaborate and write with others. Professional editing is a necessity.',
+            engines: ['qwant', 'duckduckgo', 'google', 'bing', 'brave'],
+            category: 'general',
+            template: 'default.html',
+            positions: [5, 2, 1, 5, 4],
+            thumbnail: null,
+            parsed_url: ['https', 'www.composio.co', '/', '', '', ''],
+            publishedDate: null,
+          },
+        ],
+        unresponsive_engines: [],
+      };
+      const result = await messageModel.create({
+        content: '[{}]',
+        plugin: {
+          apiName: 'searchWithSearXNG',
+          arguments: '{\n  "query": "Composio"\n}',
+          identifier: 'lobe-web-browsing',
+          type: 'builtin',
+        },
+        pluginState: state,
+        role: 'tool',
+        tool_call_id: 'tool_call_ymxXC2J0',
+        sessionId: '1',
+      });
+
+      // 断言结果
+      expect(result.id).toBeDefined();
+      expect(result.content).toBe('[{}]');
+      expect(result.role).toBe('tool');
+      expect(result.sessionId).toBe('1');
+
+      const pluginResult = await serverDB
+        .select()
+        .from(messagePlugins)
+        .where(eq(messagePlugins.id, result.id))
+        .execute();
+      expect(pluginResult).toHaveLength(1);
+      expect(pluginResult[0].identifier).toBe('lobe-web-browsing');
+      expect(pluginResult[0].state!).toMatchObject(state);
+    });
   });
 
   describe('batchCreateMessages', () => {
@@ -543,6 +704,47 @@ describe('MessageModel', () => {
       // 断言结果
       const result = await serverDB.select().from(messages).where(eq(messages.id, '1')).execute();
       expect(result[0].content).toBe('message 1');
+    });
+
+    it('should update message tools', async () => {
+      // 创建测试数据
+      await serverDB.insert(messages).values([
+        {
+          id: '1',
+          userId,
+          role: 'user',
+          content: 'message 1',
+          tools: [
+            {
+              id: 'call_Z8UU8LedZcoJHFGkfqYecjmT',
+              type: 'builtin',
+              apiName: 'searchWithSearXNG',
+              arguments:
+                '{"query":"杭州洪水 2023","searchEngines":["google","bing","baidu","duckduckgo","brave"]}',
+              identifier: 'lobe-web-browsing',
+            },
+          ],
+        },
+      ]);
+
+      // 调用 updateMessage 方法
+      await messageModel.update('1', {
+        tools: [
+          {
+            id: 'call_Z8UU8LedZcoJHFGkfqYecjmT',
+            type: 'builtin',
+            apiName: 'searchWithSearXNG',
+            arguments: '{"query":"2024 杭州暴雨","searchEngines":["duckduckgo","google","brave"]}',
+            identifier: 'lobe-web-browsing',
+          },
+        ],
+      });
+
+      // 断言结果
+      const result = await serverDB.select().from(messages).where(eq(messages.id, '1')).execute();
+      expect(result[0].tools[0].arguments).toBe(
+        '{"query":"2024 杭州暴雨","searchEngines":["duckduckgo","google","brave"]}',
+      );
     });
   });
 
@@ -604,6 +806,40 @@ describe('MessageModel', () => {
     });
   });
 
+  describe('deleteMessages', () => {
+    it('should delete 2 messages', async () => {
+      // 创建测试数据
+      await serverDB.insert(messages).values([
+        { id: '1', userId, role: 'user', content: 'message 1' },
+        { id: '2', userId, role: 'user', content: 'message 2' },
+      ]);
+
+      // 调用 deleteMessage 方法
+      await messageModel.deleteMessages(['1', '2']);
+
+      // 断言结果
+      const result = await serverDB.select().from(messages).where(eq(messages.id, '1')).execute();
+      expect(result).toHaveLength(0);
+      const result2 = await serverDB.select().from(messages).where(eq(messages.id, '2')).execute();
+      expect(result2).toHaveLength(0);
+    });
+
+    it('should only delete messages belonging to the user', async () => {
+      // 创建测试数据
+      await serverDB.insert(messages).values([
+        { id: '1', userId: '456', role: 'user', content: 'message 1' },
+        { id: '2', userId: '456', role: 'user', content: 'message 1' },
+      ]);
+
+      // 调用 deleteMessage 方法
+      await messageModel.deleteMessages(['1', '2']);
+
+      // 断言结果
+      const result = await serverDB.select().from(messages).where(eq(messages.id, '1')).execute();
+      expect(result).toHaveLength(1);
+    });
+  });
+
   describe('deleteAllMessages', () => {
     it('should delete all messages belonging to the user', async () => {
       // 创建测试数据
@@ -653,6 +889,35 @@ describe('MessageModel', () => {
         .where(eq(messagePlugins.id, '1'))
         .execute();
       expect(result[0].state).toEqual({ key1: 'value1', key2: 'value2' });
+    });
+
+    it('should throw an error if plugin does not exist', async () => {
+      // 调用 updatePluginState 方法
+      await expect(messageModel.updatePluginState('1', { key: 'value' })).rejects.toThrowError(
+        'Plugin not found',
+      );
+    });
+  });
+  describe('updateMessagePlugin', () => {
+    it('should update the state field in messagePlugins table', async () => {
+      // 创建测试数据
+      await serverDB.insert(messages).values({ id: '1', content: 'abc', role: 'user', userId });
+      await serverDB
+        .insert(messagePlugins)
+        .values([
+          { id: '1', toolCallId: 'tool1', identifier: 'plugin1', state: { key1: 'value1' } },
+        ]);
+
+      // 调用 updatePluginState 方法
+      await messageModel.updateMessagePlugin('1', { identifier: 'plugin2' });
+
+      // 断言结果
+      const result = await serverDB
+        .select()
+        .from(messagePlugins)
+        .where(eq(messagePlugins.id, '1'))
+        .execute();
+      expect(result[0].identifier).toEqual('plugin2');
     });
 
     it('should throw an error if plugin does not exist', async () => {
@@ -842,6 +1107,141 @@ describe('MessageModel', () => {
 
       // 断言结果
       expect(result).toBe(2);
+    });
+  });
+
+  describe('findMessageQueriesById', () => {
+    it('should return undefined for non-existent message query', async () => {
+      const result = await messageModel.findMessageQueriesById('non-existent-id');
+      expect(result).toBeUndefined();
+    });
+
+    it('should return message query with embeddings', async () => {
+      const query1Id = uuid();
+      const embeddings1Id = uuid();
+
+      await serverDB.transaction(async (trx) => {
+        await trx.insert(messages).values({ id: 'msg1', userId, role: 'user', content: 'abc' });
+
+        await trx.insert(embeddings).values({
+          id: embeddings1Id,
+          embeddings: codeEmbedding,
+        });
+
+        await trx.insert(messageQueries).values({
+          id: query1Id,
+          messageId: 'msg1',
+          userQuery: 'test query',
+          rewriteQuery: 'rewritten query',
+          embeddingsId: embeddings1Id,
+        });
+      });
+
+      const result = await messageModel.findMessageQueriesById('msg1');
+
+      expect(result).toBeDefined();
+      expect(result).toMatchObject({
+        id: query1Id,
+        userQuery: 'test query',
+        rewriteQuery: 'rewritten query',
+        embeddings: codeEmbedding,
+      });
+    });
+  });
+
+  describe('deleteMessagesBySession', () => {
+    it('should delete messages by session ID', async () => {
+      await serverDB.insert(sessions).values([
+        { id: 'session1', userId },
+        { id: 'session2', userId },
+      ]);
+
+      await serverDB.insert(messages).values([
+        {
+          id: '1',
+          userId,
+          sessionId: 'session1',
+          role: 'user',
+          content: 'message 1',
+        },
+        {
+          id: '2',
+          userId,
+          sessionId: 'session1',
+          role: 'assistant',
+          content: 'message 2',
+        },
+        {
+          id: '3',
+          userId,
+          sessionId: 'session2',
+          role: 'user',
+          content: 'message 3',
+        },
+      ]);
+
+      await messageModel.deleteMessagesBySession('session1');
+
+      const remainingMessages = await serverDB
+        .select()
+        .from(messages)
+        .where(eq(messages.userId, userId));
+
+      expect(remainingMessages).toHaveLength(1);
+      expect(remainingMessages[0].id).toBe('3');
+    });
+
+    it('should delete messages by session ID and topic ID', async () => {
+      await serverDB.insert(sessions).values([{ id: 'session1', userId }]);
+      await serverDB.insert(topics).values([
+        { id: 'topic1', sessionId: 'session1', userId },
+        { id: 'topic2', sessionId: 'session1', userId },
+      ]);
+
+      await serverDB.insert(messages).values([
+        {
+          id: '1',
+          userId,
+          sessionId: 'session1',
+          topicId: 'topic1',
+          role: 'user',
+          content: 'message 1',
+        },
+        {
+          id: '2',
+          userId,
+          sessionId: 'session1',
+          topicId: 'topic2',
+          role: 'assistant',
+          content: 'message 2',
+        },
+      ]);
+
+      await messageModel.deleteMessagesBySession('session1', 'topic1');
+
+      const remainingMessages = await serverDB
+        .select()
+        .from(messages)
+        .where(eq(messages.userId, userId));
+
+      expect(remainingMessages).toHaveLength(1);
+      expect(remainingMessages[0].id).toBe('2');
+    });
+  });
+
+  describe('genId', () => {
+    it('should generate unique message IDs', () => {
+      const model = new MessageModel(serverDB, userId);
+      // @ts-ignore - accessing private method for testing
+      const id1 = model.genId();
+      // @ts-ignore - accessing private method for testing
+      const id2 = model.genId();
+
+      expect(id1).toHaveLength(18);
+      expect(id2).toHaveLength(18);
+      expect(id1).not.toBe(id2);
+      expect(id1).toMatch(/^msg_/);
+      expect(id2).toMatch(/^msg_/);
     });
   });
 });

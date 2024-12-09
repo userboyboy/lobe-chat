@@ -35,6 +35,16 @@ export interface JWTPayload {
   awsAccessKeyId?: string;
   awsRegion?: string;
   awsSecretAccessKey?: string;
+  awsSessionToken?: string;
+
+  cloudflareBaseURLOrAccountID?: string;
+
+  wenxinAccessKey?: string;
+  wenxinSecretKey?: string;
+
+  sensenovaAccessKeyID?: string;
+  sensenovaAccessKeySecret?: string;
+
   /**
    * user id
    * in client db mode it's a uuid

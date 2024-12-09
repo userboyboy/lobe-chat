@@ -4,7 +4,7 @@ import { LayoutProps } from '../type';
 import ChatHeader from './ChatHeader';
 import TopicModal from './TopicModal';
 
-const Layout = ({ children, topic, conversation }: LayoutProps) => {
+const Layout = ({ children, topic, conversation, portal }: LayoutProps) => {
   return (
     <>
       <MobileContentLayout header={<ChatHeader />} style={{ overflowY: 'hidden' }}>
@@ -12,6 +12,7 @@ const Layout = ({ children, topic, conversation }: LayoutProps) => {
         {children}
       </MobileContentLayout>
       <TopicModal>{topic}</TopicModal>
+      {portal}
     </>
   );
 };

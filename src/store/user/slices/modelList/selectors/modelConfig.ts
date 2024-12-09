@@ -1,3 +1,4 @@
+import { isProviderDisableBroswerRequest } from '@/config/modelProviders';
 import { UserStore } from '@/store/user';
 import { GlobalLLMProviderKey } from '@/types/user/settings';
 
@@ -17,6 +18,9 @@ const providerWhitelist = new Set(['ollama']);
  */
 const isProviderFetchOnClient = (provider: GlobalLLMProviderKey | string) => (s: UserStore) => {
   const config = getProviderConfigById(provider)(s);
+
+  // If the provider already disable broswer request in model config, force on Server.
+  if (isProviderDisableBroswerRequest(provider)) return false;
 
   // If the provider in the whitelist, follow the user settings
   if (providerWhitelist.has(provider) && typeof config?.fetchOnClient !== 'undefined')
@@ -65,12 +69,15 @@ const openAIConfig = (s: UserStore) => currentLLMSettings(s).openai;
 const bedrockConfig = (s: UserStore) => currentLLMSettings(s).bedrock;
 const ollamaConfig = (s: UserStore) => currentLLMSettings(s).ollama;
 const azureConfig = (s: UserStore) => currentLLMSettings(s).azure;
+const cloudflareConfig = (s: UserStore) => currentLLMSettings(s).cloudflare;
+const sensenovaConfig = (s: UserStore) => currentLLMSettings(s).sensenova;
 
 const isAzureEnabled = (s: UserStore) => currentLLMSettings(s).azure.enabled;
 
 export const modelConfigSelectors = {
   azureConfig,
   bedrockConfig,
+  cloudflareConfig,
 
   currentEditingCustomModelCard,
   getCustomModelCard,
@@ -82,4 +89,5 @@ export const modelConfigSelectors = {
 
   ollamaConfig,
   openAIConfig,
+  sensenovaConfig,
 };

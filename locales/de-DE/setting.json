@@ -12,7 +12,7 @@
   },
   "analytics": {
     "telemetry": {
-      "desc": "Durch das Senden von Telemetriedaten können Sie uns dabei helfen, die Gesamtnutzererfahrung von LobeChat zu verbessern",
+      "desc": "Indem du die Übertragung von Telemetriedaten auswählst, kannst du uns helfen, das Gesamterlebnis der Nutzer von {{appName}} zu verbessern.",
       "title": "Anonyme Nutzungsdaten senden"
     },
     "title": "Analytics"
@@ -70,11 +70,11 @@
           "title": "Modellanzeigename"
         },
         "files": {
-          "extra": "Die aktuelle Implementierung des Datei-Uploads in LobeChat ist nur eine Hack-Lösung und nur für eigene Versuche gedacht. Die vollständige Datei-Upload-Funktion wird in zukünftigen Versionen implementiert.",
+          "extra": "Die aktuelle Datei-Upload-Implementierung ist lediglich eine Hack-Lösung und nur für eigene Versuche gedacht. Bitte warte auf die vollständige Implementierung der Datei-Upload-Funktionalität.",
           "title": "Datei-Upload unterstützen"
         },
         "functionCall": {
-          "extra": "Diese Konfiguration aktiviert nur die Funktion zum Aufrufen von Funktionen in LobeChat. Die Unterstützung von Funktionsaufrufen hängt vollständig von dem Modell selbst ab. Bitte testen Sie die Verfügbarkeit der Funktionsaufrufe des Modells selbst.",
+          "extra": "Diese Konfiguration aktiviert nur die Funktion zum Aufrufen von Funktionen innerhalb der Anwendung. Ob die Funktionalität zum Aufrufen von Funktionen unterstützt wird, hängt vollständig vom Modell selbst ab. Bitte teste die Verwendbarkeit der Funktionalität des Modells selbst.",
           "title": "Funktionsaufrufe unterstützen"
         },
         "id": {
@@ -88,7 +88,7 @@
           "unlimited": "unbegrenzt"
         },
         "vision": {
-          "extra": "Diese Konfiguration aktiviert nur die Bild-Upload-Konfiguration in LobeChat. Die Unterstützung der Erkennung hängt vollständig von dem Modell selbst ab. Bitte testen Sie die Verfügbarkeit der visuellen Erkennungsfähigkeiten des Modells selbst.",
+          "extra": "Diese Konfiguration aktiviert nur die Bild-Upload-Einstellungen innerhalb der Anwendung. Ob die Erkennung unterstützt wird, hängt vollständig vom Modell selbst ab. Bitte teste die Verwendbarkeit der visuellen Erkennungsfähigkeit des Modells selbst.",
           "title": "Visuelle Erkennung unterstützen"
         }
       }
@@ -98,6 +98,7 @@
       "title": "Client Fetch-Modus verwenden"
     },
     "fetcher": {
+      "clear": "Abgerufenes Modell löschen",
       "fetch": "Modelle abrufen",
       "fetching": "Modelle werden abgerufen...",
       "latestTime": "Letzte Aktualisierung: {{time}}",
@@ -175,8 +176,8 @@
       "desc": "Automatische Erstellung eines Themas während des Gesprächs, nur in temporären Themen aktiv",
       "title": "Automatische Themen-Erstellung aktivieren"
     },
-    "enableCompressThreshold": {
-      "title": "Aktivieren der Komprimierungsschwelle für Historienlänge"
+    "enableCompressHistory": {
+      "title": "Automatische Zusammenfassung der Verlaufnachrichten aktivieren"
     },
     "enableHistoryCount": {
       "alias": "Unbegrenzt",
@@ -209,13 +210,7 @@
       "title": "Maximale Token pro Antwort"
     },
     "model": {
-      "desc": "ChatGPT-Modell",
-      "list": {
-        "gpt-3.5-turbo": "GPT 3.5",
-        "gpt-3.5-turbo-16k": "GPT 3.5 (16K)",
-        "gpt-4": "GPT 4",
-        "gpt-4-32k": "GPT 4 (32K)"
-      },
+      "desc": "{{provider}} Modell",
       "title": "Modell"
     },
     "presencePenalty": {
@@ -345,7 +340,7 @@
       "unknownOS": "Unbekanntes Betriebssystem"
     },
     "warning": {
-      "message": "Diese Funktion ist derzeit experimentell und kann unerwartete oder instabile Situationen aufweisen. Bitte geben Sie bei Problemen rechtzeitig Feedback ab."
+      "tip": "Nach einer längeren Phase des Community-Tests kann die WebRTC-Synchronisierung möglicherweise nicht stabil genug sein, um allgemeine Synchronisierungsanforderungen zu erfüllen. Bitte <1>richten Sie einen Signalisierungsserver ein</1> und verwenden Sie ihn dann."
     },
     "webrtc": {
       "channelName": {
@@ -361,8 +356,13 @@
       },
       "desc": "Echtzeit, Punkt-zu-Punkt-Datenkommunikation, bei der die Geräte gleichzeitig online sein müssen, um synchronisiert zu werden",
       "enabled": {
-        "invalid": "Bitte geben Sie zuerst den Synchronisierungskanalnamen ein, bevor Sie die Synchronisierung aktivieren",
+        "invalid": "Bitte geben Sie zuerst den Signalisierungsserver und den Synchronisierungskanal an, bevor Sie dies aktivieren.",
         "title": "Synchronisierung aktivieren"
+      },
+      "signaling": {
+        "desc": "WebRTC wird diese Adresse für die Synchronisierung verwenden",
+        "placeholder": "Bitte geben Sie die Adresse des Signalisierungsservers ein",
+        "title": "Signalisierungsserver"
       },
       "title": "WebRTC-Synchronisierung"
     }
@@ -372,6 +372,27 @@
       "label": "Assistentenmetadaten-Generierungsmodell",
       "modelDesc": "Das Modell, das zur Generierung von Assistentennamen, -beschreibungen, -avatars und -tags verwendet wird",
       "title": "Automatische Generierung von Assistenteninformationen"
+    },
+    "customPrompt": {
+      "addPrompt": "Benutzerdefinierte Eingabe hinzufügen",
+      "desc": "Nachdem Sie dies ausgefüllt haben, verwendet der Systemassistent die benutzerdefinierte Eingabe zur Generierung von Inhalten",
+      "placeholder": "Bitte benutzerdefinierte Eingabe eingeben",
+      "title": "Benutzerdefinierte Eingabe"
+    },
+    "historyCompress": {
+      "label": "Gesprächshistorienmodell",
+      "modelDesc": "Das Modell, das zur Komprimierung der Gesprächshistorie verwendet wird",
+      "title": "Automatische Zusammenfassung der Gesprächshistorie"
+    },
+    "queryRewrite": {
+      "label": "Fragenumformulierung Modell",
+      "modelDesc": "Modell zur Optimierung der Benutzeranfragen",
+      "title": "Wiederformulierung von Fragen aus der Wissensdatenbank"
+    },
+    "thread": {
+      "label": "Unterthema-Namensmodell",
+      "modelDesc": "Modell zur automatischen Umbenennung von Unterthemen",
+      "title": "Automatische Benennung von Unterthemen"
     },
     "title": "Systemassistent",
     "topic": {

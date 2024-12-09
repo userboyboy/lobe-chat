@@ -1,11 +1,23 @@
 {
   "about": "Giới thiệu",
   "advanceSettings": "Cài đặt nâng cao",
-  "appInitializing": "Ứng dụng đang khởi động, vui lòng chờ...",
+  "alert": {
+    "cloud": {
+      "action": "Trải nghiệm miễn phí",
+      "desc": "Chúng tôi cung cấp {{credit}} điểm tính toán miễn phí cho tất cả người dùng đăng ký, không cần cấu hình phức tạp, sẵn sàng sử dụng ngay, hỗ trợ lưu trữ vô hạn lịch sử trò chuyện và đồng bộ toàn cầu, cùng nhiều tính năng cao cấp khác đang chờ bạn khám phá.",
+      "descOnMobile": "Chúng tôi cung cấp {{credit}} điểm tính toán miễn phí cho tất cả người dùng đăng ký, không cần cấu hình phức tạp, sẵn sàng sử dụng ngay.",
+      "title": "Chào mừng bạn trải nghiệm {{name}}"
+    }
+  },
+  "appInitializing": "Đang khởi động ứng dụng...",
   "autoGenerate": "Tự động tạo",
   "autoGenerateTooltip": "Tự động hoàn thành mô tả trợ lý dựa trên từ gợi ý",
   "autoGenerateTooltipDisabled": "Vui lòng nhập từ gợi ý trước khi sử dụng tính năng tự động hoàn thành",
+  "back": "Quay lại",
+  "batchDelete": "Xóa hàng loạt",
   "blog": "Blog sản phẩm",
+  "branching": "Tạo chủ đề con",
+  "branchingDisable": "Chức năng «Chủ đề con» chỉ có sẵn trong phiên bản máy chủ. Nếu bạn cần chức năng này, hãy chuyển sang chế độ triển khai máy chủ hoặc sử dụng LobeChat Cloud.",
   "cancel": "Hủy",
   "changelog": "Nhật ký cập nhật",
   "close": "Đóng",
@@ -23,6 +35,7 @@
   "defaultSession": "Phiên mặc định",
   "delete": "Xóa",
   "document": "Tài Liệu Sử Dụng",
+  "download": "Tải xuống",
   "duplicate": "Tạo bản sao",
   "edit": "Chỉnh sửa",
   "export": "Xuất cấu hình",
@@ -101,6 +114,7 @@
     "en": "Tiếng Anh",
     "en-US": "Tiếng Anh (Mỹ)",
     "es-ES": "Tiếng Tây Ban Nha",
+    "fa-IR": "Tiếng Ba Tư",
     "fi-FI": "Tiếng Phần Lan",
     "fr-FR": "Tiếng Pháp",
     "hi-IN": "Tiếng Hin-ddi",
@@ -184,7 +198,8 @@
   },
   "tab": {
     "chat": "Trò chuyện",
-    "market": "Thị trường",
+    "discover": "Khám phá",
+    "files": "Tệp",
     "me": "Tôi",
     "setting": "Cài đặt"
   },
@@ -206,6 +221,7 @@
   "userPanel": {
     "anonymousNickName": "Người dùng ẩn danh",
     "billing": "Quản lý hóa đơn",
+    "cloud": "Trải nghiệm {{name}}",
     "data": "Lưu trữ dữ liệu",
     "defaultNickname": "Người dùng phiên bản cộng đồng",
     "discord": "Hỗ trợ cộng đồng",
