@@ -4,12 +4,13 @@ import type {
   AdapterUser,
   VerificationToken,
 } from '@auth/core/adapters';
-import { and, eq } from 'drizzle-orm';
+import { and, eq } from 'drizzle-orm/expressions';
 import type { NeonDatabase } from 'drizzle-orm/neon-serverless';
 import { Adapter, AdapterAccount } from 'next-auth/adapters';
 
 import * as schema from '@/database/schemas';
 import { UserModel } from '@/database/server/models/user';
+import { AgentService } from '@/server/services/agent';
 import { merge } from '@/utils/merge';
 
 import {
@@ -53,7 +54,10 @@ export function LobeNextAuthDbAdapter(serverDB: NeonDatabase<typeof schema>): Ad
     async createUser(user): Promise<AdapterUser> {
       const { id, name, email, emailVerified, image, providerAccountId } = user;
       // return the user if it already exists
-      let existingUser = email.trim() ? await UserModel.findByEmail(serverDB, email) : undefined;
+      let existingUser =
+        email && typeof email === 'string' && email.trim()
+          ? await UserModel.findByEmail(serverDB, email)
+          : undefined;
       // If the user is not found by email, try to find by providerAccountId
       if (!existingUser && providerAccountId) {
         existingUser = await UserModel.findById(serverDB, providerAccountId);
@@ -62,6 +66,7 @@ export function LobeNextAuthDbAdapter(serverDB: NeonDatabase<typeof schema>): Ad
         const adapterUser = mapLobeUserToAdapterUser(existingUser);
         return adapterUser;
       }
+
       // create a new user if it does not exist
       await UserModel.createUser(
         serverDB,
@@ -74,6 +79,11 @@ export function LobeNextAuthDbAdapter(serverDB: NeonDatabase<typeof schema>): Ad
           name,
         }),
       );
+
+      // 3. Create an inbox session for the user
+      const agentService = new AgentService(serverDB, id);
+      await agentService.createInbox();
+
       return { ...user, id: providerAccountId ?? id };
     },
     async createVerificationToken(data): Promise<VerificationToken | null | undefined> {
@@ -169,7 +179,10 @@ export function LobeNextAuthDbAdapter(serverDB: NeonDatabase<typeof schema>): Ad
     },
 
     async getUserByEmail(email): Promise<AdapterUser | null> {
-      const lobeUser = email.trim() ? await UserModel.findByEmail(serverDB, email) : undefined;
+      const lobeUser =
+        email && typeof email === 'string' && email.trim()
+          ? await UserModel.findByEmail(serverDB, email)
+          : undefined;
       return lobeUser ? mapLobeUserToAdapterUser(lobeUser) : null;
     },
 

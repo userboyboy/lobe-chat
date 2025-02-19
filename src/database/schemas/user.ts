@@ -39,6 +39,9 @@ export const userSettings = pgTable('user_settings', {
     .primaryKey(),
 
   tts: jsonb('tts'),
+  /**
+   * @deprecated
+   */
   keyVaults: text('key_vaults'),
   general: jsonb('general'),
   languageModel: jsonb('language_model'),
@@ -46,6 +49,7 @@ export const userSettings = pgTable('user_settings', {
   defaultAgent: jsonb('default_agent'),
   tool: jsonb('tool'),
 });
+export type UserSettingsItem = typeof userSettings.$inferSelect;
 
 export const installedPlugins = pgTable(
   'user_installed_plugins',
